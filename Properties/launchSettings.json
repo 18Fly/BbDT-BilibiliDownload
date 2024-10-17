@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "BbDT (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "BbDT (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

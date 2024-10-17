@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="BbDT.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:BbDT"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Window.Title>
+        BbDT-哔哩哔哩下载器v0.0.1
+    </Window.Title>
+
+    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+        <ContentDialog x:Name="LoginDialog"
+                      Title="请扫码登录使用"
+                      PrimaryButtonText="未登录"
+                      DefaultButton="Primary"
+                      IsPrimaryButtonEnabled="False">
+            <Image Name="QRCodeImage" Width="285" Height="285" Source="D://tmp/QRLoginCode.png"></Image>
+        </ContentDialog>
+        <Grid Width="600" VerticalAlignment="Top" Margin="0,50,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition>*</ColumnDefinition>
+                <ColumnDefinition>3*</ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="视频链接：" FontSize="24" Grid.Column="0"/>
+            <TextBox Grid.Column="1" Name="TB"/>
+        </Grid>
+        <ProgressBar Name="PB" Minimum="0" Maximum="100" Value="0" Width="450" Margin="151,20,0,0" Foreground="SkyBlue"></ProgressBar>
+        <Button HorizontalAlignment="Center" FontSize="28" Margin="0,130,0,0" VerticalAlignment="Bottom" Content="下载视频" Click="Button_Click"/>
+    </StackPanel>
+</Window>
