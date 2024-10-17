@@ -19,7 +19,7 @@ namespace BbDT
         public static async void IntegrateSource(ProgressBar progress, ContentDialog dialog)
         {
             FFmpeg.SetExecutablesPath(Environment.GetEnvironmentVariable("FFMPEG"));
-            var paramter = $"-hwaccel auto -i D://tmp/Audio.m4s -i D://tmp/Vedio.m4s -c:v hevc_amf -c:a aac -b:v 1000k D://output.mp4";
+            var paramter = $"-hwaccel auto -i D://tmp/Audio.m4s -i D://tmp/Vedio.m4s -c:v h264_amf -c:a aac -b:v 3000k D://output.mp4";
 
             await FFmpeg.Conversions.New().Start(paramter);
 

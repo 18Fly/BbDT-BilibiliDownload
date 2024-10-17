@@ -4,6 +4,8 @@ using Microsoft.UI.Xaml.Controls;
 using System.Net.Http;
 using Windows.Graphics;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -31,7 +33,7 @@ namespace BbDT
 
             this.AppWindow.MoveAndResize(new RectInt32(960 - 650 / 2, 540 - 500 / 2, 650, 500));
 
-            downloadClient = new("https://www.bilibili.com/", httpClient, QRCodeImage, LoginDialog, changePrimaryButton, ReportVedioProgress, ReportAudioProgress, changeDownloadStatus, PB);
+            downloadClient = new("https://www.bilibili.com/video/BV1pL4y1e7kQ/?spm_id_from=333.337.search-card.all.click", httpClient, QRCodeImage, LoginDialog, changePrimaryButton, ReportVedioProgress, ReportAudioProgress, changeDownloadStatus, PB);
         }
 
 
@@ -51,6 +53,7 @@ namespace BbDT
             }
             else
             {
+                PB.Foreground = new SolidColorBrush(Colors.SkyBlue);
                 _ = await downloadClient.GetUrlSource(TB.Text);
             }
         }
@@ -66,13 +69,13 @@ namespace BbDT
 
         private void ReportVedioProgress(long byteread, long totalbyte)
         {
-            vedioProgress = (double)byteread / totalbyte * 34;
+            vedioProgress = byteread / totalbyte * 34;
             PB.Value = audioProgress + vedioProgress;
         }
 
         private void ReportAudioProgress(long byteread, long totalbyte)
         {
-            audioProgress = (double)byteread / totalbyte * 34;
+            audioProgress = byteread / totalbyte * 34;
             PB.Value = audioProgress + vedioProgress;
         }
 
