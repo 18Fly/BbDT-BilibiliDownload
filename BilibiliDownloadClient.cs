@@ -1,20 +1,19 @@
 ﻿using HtmlAgilityPack;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Imaging;
 using QRCoder;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Graphics.Imaging;
-using Windows.Storage.Streams;
+using static BbDT.RespModels;
 
 namespace BbDT
 {
@@ -109,6 +108,7 @@ namespace BbDT
         /// 进行登陆操作,获取关键用户鉴权信息
         /// </summary>
         /// <returns>用于await等待执行</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
         public async Task<bool> GetLoginInformation()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url.requestUrl);
@@ -144,8 +144,7 @@ namespace BbDT
             request = new HttpRequestMessage(HttpMethod.Get, url.loginUrl);
 
             response = await client.SendAsync(request);
-            string tmp = await response.Content.ReadAsStringAsync();
-            RespModels.LoginResp loginResp = JsonSerializer.Deserialize<RespModels.LoginResp>(tmp);
+            LoginResp loginResp = await response.Content.ReadFromJsonAsync<LoginResp>();
             uriParamter.QrCode_Url = loginResp.data.url;
             uriParamter.QrCode_Key = loginResp.data.qrcode_key;
             url.pollUrl = $"https://passport.bilibili.com/x/passport-login/web/qrcode/poll?qrcode_key={loginResp.data.qrcode_key}&source=main-fe-header";
@@ -170,13 +169,14 @@ namespace BbDT
         /// 轮询是否扫描登陆成功的回调函数
         /// </summary>
         /// <param name="oj">用不到，Timer的回调函数强制要求参数如此</param>
+        [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
         public async void ContinueCheckLogin(object oj)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url.pollUrl);
 
             var response = await client.SendAsync(request);
             string tmp = await response.Content.ReadAsStringAsync();
-            RespModels.QRCodeCheck qRCodeCheck = JsonSerializer.Deserialize<RespModels.QRCodeCheck>(tmp);
+            QRCodeCheck qRCodeCheck = JsonSerializer.Deserialize<QRCodeCheck>(tmp);
 
             if (!qRCodeCheck.data.refresh_token.Equals(""))
             {
@@ -228,6 +228,7 @@ namespace BbDT
         /// </summary>
         /// <param name="downUrl">将要下载的视频链接</param>
         /// <returns>用户鉴权是否正常</returns>
+        [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
         public async Task<bool> GetUrlSource(string downUrl)
         {
             string[] tmpString = downUrl.Split('/');
@@ -269,7 +270,7 @@ namespace BbDT
             request.Version = new(2, 0);
             response = await client.SendAsync(request);
 
-            RespModels.VedioAndAudioUrl.Root vedioAndAudioUrl = JsonSerializer.Deserialize<RespModels.VedioAndAudioUrl.Root>(await response.Content.ReadAsStreamAsync());
+            VedioAndAudioUrl.Root vedioAndAudioUrl = JsonSerializer.Deserialize<VedioAndAudioUrl.Root>(await response.Content.ReadAsStringAsync());
             url.vedioDownloadUrl = vedioAndAudioUrl.data.dash.video[0].backup_url[0];
             url.audioDownloadUrl = vedioAndAudioUrl.data.dash.audio[0].backup_url[0];
 

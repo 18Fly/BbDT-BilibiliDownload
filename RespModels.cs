@@ -1,27 +1,40 @@
 ﻿#nullable enable
 
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace BbDT
 {
     /// <summary>
     /// JSON模板类
     /// </summary>
-    internal class RespModels
+    public class RespModels
     {
         /// <summary>
         /// 登录信息的JSON模板
         /// </summary>
+        [DataContract]
         public class LoginResp
         {
+            [JsonConstructor]
+            public LoginResp() { }
+
+            [DataMember]
             public int code { get; set; }
+            [DataMember]
             public string? message { get; set; }
+            [DataMember]
             public int ttl { get; set; }
+            [DataMember]
             public Data? data { get; set; }
 
+            [DataContract]
             public class Data
             {
+                [DataMember]
                 public string? url { get; set; }
+                [DataMember]
                 public string? qrcode_key { get; set; }
             }
         }

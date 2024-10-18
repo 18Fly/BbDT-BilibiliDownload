@@ -1,12 +1,12 @@
 
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using Newtonsoft.Json;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using Windows.Graphics;
-using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI;
+using static BbDT.RespModels;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -36,8 +36,6 @@ namespace BbDT
 
             downloadClient = new("https://www.bilibili.com/video/BV1pL4y1e7kQ/?spm_id_from=333.337.search-card.all.click", httpClient, QRCodeImage, LoginDialog, changePrimaryButton, ReportVedioProgress, ReportAudioProgress, changeDownloadStatus, PB);
         }
-
-
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
