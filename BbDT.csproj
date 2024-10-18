@@ -55,6 +55,7 @@
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
 		<ImplicitUsings>disable</ImplicitUsings>
+		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<!--
@@ -74,7 +75,13 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
 		<Optimize>True</Optimize>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" />
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" />
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+	  <Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+	  <Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+	  <Optimize>True</Optimize>
+	</PropertyGroup>
 </Project>

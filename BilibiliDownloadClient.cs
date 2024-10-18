@@ -231,7 +231,7 @@ namespace BbDT
         [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
         public async Task<bool> GetUrlSource(string downUrl)
         {
-            string[] tmpString = downUrl.Split('/');
+            string[] tmpString = downUrl.Split('/','?');
             uriParamter.Bvid = tmpString[4];
 
             var request = new HttpRequestMessage(HttpMethod.Get, downUrl);
