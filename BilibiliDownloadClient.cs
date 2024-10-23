@@ -231,7 +231,7 @@ namespace BbDT
         [RequiresUnreferencedCode("Calls System.Text.Json.JsonSerializer.Deserialize<TValue>(String, JsonSerializerOptions)")]
         public async Task<bool> GetUrlSource(string downUrl)
         {
-            string[] tmpString = downUrl.Split('/','?');
+            string[] tmpString = downUrl.Split('/', '?');
             uriParamter.Bvid = tmpString[4];
 
             var request = new HttpRequestMessage(HttpMethod.Get, downUrl);
@@ -298,9 +298,9 @@ namespace BbDT
             response.EnsureSuccessStatusCode();
             long? totalBytes = response.Content.Headers.ContentLength;
             using (Stream contentStream = await response.Content.ReadAsStreamAsync(),
-              fileStream = new FileStream("D://tmp/Audio.m4s", FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+              fileStream = new FileStream("D://tmp/Audio.m4s", FileMode.Create, FileAccess.Write, FileShare.None, 1024, true))
             {
-                var buffer = new byte[8192];  // 设置读取缓冲区大小
+                var buffer = new byte[1024];  // 设置读取缓冲区大小
                 long totalBytesRead = 0;      // 累计已读取字节数
                 int bytesRead;
 
@@ -338,9 +338,9 @@ namespace BbDT
             response.EnsureSuccessStatusCode();
             long? totalBytes = response.Content.Headers.ContentLength;
             using (Stream contentStream = await response.Content.ReadAsStreamAsync(),
-              fileStream = new FileStream("D://tmp/Vedio.m4s", FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+              fileStream = new FileStream("D://tmp/Vedio.m4s", FileMode.Create, FileAccess.Write, FileShare.None, 1024, true))
             {
-                var buffer = new byte[8192];  // 设置读取缓冲区大小
+                var buffer = new byte[1024];  // 设置读取缓冲区大小
                 long totalBytesRead = 0;      // 累计已读取字节数
                 int bytesRead;
 

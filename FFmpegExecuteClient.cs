@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
+using System.IO;
 using Xabe.FFmpeg;
 
 namespace BbDT
@@ -18,6 +19,11 @@ namespace BbDT
         /// </summary>
         public static async void IntegrateSource(ProgressBar progress, ContentDialog dialog)
         {
+            if (File.Exists("D://output.mp4"))
+            {
+                File.Delete("D://output.mp4");
+            }
+
             FFmpeg.SetExecutablesPath(Environment.GetEnvironmentVariable("FFMPEG"));
             var paramter = $"-hwaccel auto -i D://tmp/Audio.m4s -i D://tmp/Vedio.m4s -c:v h264_amf -c:a aac -b:v 3000k D://output.mp4";
 
