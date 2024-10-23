@@ -2,11 +2,9 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
-using Newtonsoft.Json;
-using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Net.Http;
 using Windows.Graphics;
-using static BbDT.RespModels;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -53,6 +51,13 @@ namespace BbDT
             else
             {
                 PB.Foreground = new SolidColorBrush(Colors.SkyBlue);
+                PB.Value = 0;
+
+                if (File.Exists("D://output.mp4"))
+                {
+                    File.Delete("D://output.mp4");
+                }
+
                 _ = await downloadClient.GetUrlSource(TB.Text);
             }
         }
