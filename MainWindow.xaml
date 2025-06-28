@@ -9,7 +9,7 @@
     mc:Ignorable="d">
 
     <Window.Title>
-        BbDT-哔哩哔哩下载器v0.0.1
+        BbDT-哔哩哔哩下载器v1.1.0
     </Window.Title>
 
     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
