@@ -1,7 +1,10 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.UI;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
 using QRCoder;
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
@@ -13,6 +16,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Storage;
 using static BbDT.RespModels;
 
 namespace BbDT
@@ -109,8 +113,32 @@ namespace BbDT
         /// </summary>
         /// <returns>用于await等待执行</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
-        public async Task<bool> GetLoginInformation()
+        public async Task<bool> GetLoginInformation(DispatcherQueue dispatcherQueue)
         {
+            // 检查本地是否已保存 SESSDATA（登录凭证）且 SESSDATA_Expires（保存时间戳）存在，且距离上次保存未超过24小时
+            if (ApplicationData.Current.LocalSettings.Values.ContainsKey("SESSDATA") &&
+    (ApplicationData.Current.LocalSettings.Values.TryGetValue("SESSDATA_Expires", out var value)
+        && long.TryParse(value.ToString(), out long lastTs)
+        && (DateTimeOffset.UtcNow - DateTimeOffset.FromUnixTimeSeconds(lastTs)).TotalHours < 24))
+            {
+                Debug.WriteLine(ApplicationData.Current.LocalSettings.Values["SESSDATA"]);
+                // 如果满足条件，则直接使用本地保存的 SESSDATA，无需重新扫码登录
+                header.SessData = (string)ApplicationData.Current.LocalSettings.Values["SESSDATA"];
+                header.Buvid3 = (string)ApplicationData.Current.LocalSettings.Values["Buvid3"];
+                header.B_Nut = (string)ApplicationData.Current.LocalSettings.Values["B_Nut"];
+                callbackControlDownload();
+                dispatcherQueue.TryEnqueue(() =>
+                {
+                    contentDialog.Title = "提示";
+                    contentDialog.PrimaryButtonText = "确定";
+                    contentDialog.Content = "登录凭证已记录，请继续下载!";
+                    contentDialog.IsPrimaryButtonEnabled = true;
+                    _ = contentDialog.ShowAsync();
+                });
+
+                return true;
+            }
+
             var request = new HttpRequestMessage(HttpMethod.Get, url.requestUrl);
 
             request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0");
@@ -136,6 +164,9 @@ namespace BbDT
                             break;
                     }
                 }
+                // 这两个参数对于下载视频和音频的请求过程中不是太重要
+                ApplicationData.Current.LocalSettings.Values["Buvid3"] = header.Buvid3;
+                ApplicationData.Current.LocalSettings.Values["B_Nut"] = header.B_Nut;
             }
 
             request.Dispose();
@@ -152,10 +183,10 @@ namespace BbDT
             request.Dispose();
             response.Dispose();
 
+
+            // 弹出二维码进行扫码登录，并启动定时器轮询扫码状态
             GenerateQrCodeLogin();
-
             timer = new Timer(ContinueCheckLogin, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
-
 
             //while (!controlRequest) ;
             //request = new HttpRequestMessage(HttpMethod.Get, url.requestUrl);
@@ -199,6 +230,9 @@ namespace BbDT
                         }
                     }
                 }
+                ApplicationData.Current.LocalSettings.Values["SESSDATA"] = header.SessData;
+                ApplicationData.Current.LocalSettings.Values["SESSDATA_Expires"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
                 callback();
                 callbackControlDownload();
             }
@@ -267,7 +301,9 @@ namespace BbDT
 
             request = new HttpRequestMessage(HttpMethod.Get, $"https://api.bilibili.com/x/player/wbi/playurl?fnval=4048&bvid={uriParamter.Bvid}&cid={uriParamter.Cid}");
             request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0");
+            request.Headers.Add("Cookie", $"SESSDATA={header.SessData}");
             request.Version = new(2, 0);
+
             response = await client.SendAsync(request);
 
             VedioAndAudioUrl.Root vedioAndAudioUrl = JsonSerializer.Deserialize<VedioAndAudioUrl.Root>(await response.Content.ReadAsStringAsync());
@@ -277,8 +313,12 @@ namespace BbDT
             request.Dispose();
             response.Dispose();
 
-            _ = GetAudioSource();
-            _ = GetVedioSource();
+            var th1 = GetAudioSource();
+            var th2 = GetVedioSource();
+
+            await Task.WhenAll(th1, th2);
+
+            FFmpegExecuteClient.IntegrateSource(progressBar, contentDialog);
 
             return true;
         }
@@ -297,26 +337,33 @@ namespace BbDT
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             long? totalBytes = response.Content.Headers.ContentLength;
-            using (Stream contentStream = await response.Content.ReadAsStreamAsync(),
-              fileStream = new FileStream("D://tmp/Audio.m4s", FileMode.Create, FileAccess.Write, FileShare.None, 1024, true))
+            try
             {
-                var buffer = new byte[1024];  // 设置读取缓冲区大小
-                long totalBytesRead = 0;      // 累计已读取字节数
-                int bytesRead;
-
-                // 循环读取响应流
-                while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                using (Stream contentStream = await response.Content.ReadAsStreamAsync(),
+  fileStream = new FileStream("D://tmp/Audio.m4s", FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
                 {
-                    // 将读取的字节写入本地文件
-                    await fileStream.WriteAsync(buffer, 0, bytesRead);
-                    totalBytesRead += bytesRead;
+                    var buffer = new byte[8192];  // 设置读取缓冲区大小
+                    long totalBytesRead = 0;      // 累计已读取字节数
+                    int bytesRead;
 
-                    // 如果知道文件总大小，则计算并报告下载进度
-                    if (totalBytes.HasValue)
+                    // 循环读取响应流
+                    while ((bytesRead = await contentStream.ReadAsync(buffer)) > 0)
                     {
-                        callbackAudioDownload(totalBytesRead, totalBytes.Value);
+                        // 将读取的字节写入本地文件
+                        await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
+                        totalBytesRead += bytesRead;
+
+                        // 如果知道文件总大小，则计算并报告下载进度
+                        if (totalBytes.HasValue)
+                        {
+                            callbackAudioDownload(totalBytesRead, totalBytes.Value);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"音频下载出现问题:{ex.Message}");
             }
 
             return true;
@@ -337,29 +384,34 @@ namespace BbDT
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             long? totalBytes = response.Content.Headers.ContentLength;
-            using (Stream contentStream = await response.Content.ReadAsStreamAsync(),
-              fileStream = new FileStream("D://tmp/Vedio.m4s", FileMode.Create, FileAccess.Write, FileShare.None, 1024, true))
+            try
             {
-                var buffer = new byte[1024];  // 设置读取缓冲区大小
-                long totalBytesRead = 0;      // 累计已读取字节数
-                int bytesRead;
-
-                // 循环读取响应流
-                while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                using (Stream contentStream = await response.Content.ReadAsStreamAsync(),
+  fileStream = new FileStream("D://tmp/Vedio.m4s", FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
                 {
-                    // 将读取的字节写入本地文件
-                    await fileStream.WriteAsync(buffer, 0, bytesRead);
-                    totalBytesRead += bytesRead;
+                    var buffer = new byte[8192];  // 设置读取缓冲区大小
+                    long totalBytesRead = 0;      // 累计已读取字节数
+                    int bytesRead;
 
-                    // 如果知道文件总大小，则计算并报告下载进度
-                    if (totalBytes.HasValue)
+                    // 循环读取响应流
+                    while ((bytesRead = await contentStream.ReadAsync(buffer)) > 0)
                     {
-                        callbackDownload(totalBytesRead, totalBytes.Value);
+                        // 将读取的字节写入本地文件
+                        await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
+                        totalBytesRead += bytesRead;
+
+                        // 如果知道文件总大小，则计算并报告下载进度
+                        if (totalBytes.HasValue)
+                        {
+                            callbackDownload(totalBytesRead, totalBytes.Value);
+                        }
                     }
                 }
             }
-
-            FFmpegExecuteClient.IntegrateSource(progressBar, contentDialog);
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"视频下载出现问题:{ex.Message}");
+            }
 
             return true;
         }

@@ -12,7 +12,6 @@
 		<UseWinUI>true</UseWinUI>
 		<EnableMsixTooling>true</EnableMsixTooling>
 		<DefaultLanguage>zh-CN</DefaultLanguage>
-		<PackageCertificateThumbprint>A6628BE873B2293EA797368BAD1400240AC1CE00</PackageCertificateThumbprint>
 		<PackageCertificateKeyFile>BbDT_TemporaryKey.pfx</PackageCertificateKeyFile>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
@@ -56,6 +55,14 @@
 	<PropertyGroup Label="Globals">
 		<ImplicitUsings>disable</ImplicitUsings>
 		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+		<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+		<AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+		<AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+		<GenerateTestArtifacts>True</GenerateTestArtifacts>
+		<AppxBundle>Never</AppxBundle>
+		<AppInstallerUri>http://127.0.0.1</AppInstallerUri>
+		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
 	</PropertyGroup>
 
 	<!--

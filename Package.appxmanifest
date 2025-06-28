@@ -10,7 +10,7 @@
   <Identity
     Name="5b844417-85eb-43c5-bb56-b78a427b8fdc"
     Publisher="CN=18Fly"
-    Version="1.0.0.0" />
+    Version="1.1.13.0" />
 
   <mp:PhoneIdentity PhoneProductId="5b844417-85eb-43c5-bb56-b78a427b8fdc" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
